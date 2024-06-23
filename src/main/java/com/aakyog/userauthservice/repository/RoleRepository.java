@@ -16,5 +16,4 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
     void deleteByName(String name);
 
     Set<Role> findByNameIn(Set<String> names);
-    // You can add more custom queries as needed
 }

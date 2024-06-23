@@ -6,6 +6,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.aakyog.userauthservice.model.Role;
@@ -16,20 +23,27 @@ import com.aakyog.userauthservice.repository.UserRepository;
 import jakarta.transaction.Transactional;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
-    @Autowired
     private UserRepository userRepository;
 
-    @Autowired
     private RoleRepository roleRepository;
-//    @Autowired
-//    private PasswordEncoder passwordEncoder;
 
-    // Method to save or update a user
+    private PasswordEncoder passwordEncoder;
+    
+    
+
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, @Lazy PasswordEncoder passwordEncoder) {
+		super();
+		this.userRepository = userRepository;
+		this.roleRepository = roleRepository;
+		this.passwordEncoder = passwordEncoder;
+	}
+
+	// Method to save or update a user
     public void saveUser(User user) {
         // Encode password before saving
-        user.setPassword(user.getPassword());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
 
@@ -74,5 +88,29 @@ public class UserService {
         userRepository.save(user);
     }
     // Other methods as needed
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		
+		Optional<User> isExisingUser =  userRepository.findByUsername(username);
+		
+		if (isExisingUser.isPresent()) {
+            User user = isExisingUser.get();
+            
+            Set<GrantedAuthority> authorities = user.getRoles().stream()
+                    .map(role -> new SimpleGrantedAuthority(role.getName()))
+                    .collect(Collectors.toSet());
+            
+            UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                authorities
+                // Add authorities/roles if required
+            );
+            return userDetails;
+        } else {
+            throw new UsernameNotFoundException("User not found with username: " + username);
+        }
+	}
 
 }

@@ -28,11 +28,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @GetMapping({"/", ""})
-    public ResponseEntity<?> loadingDefault(){
-    	return ResponseEntity.ok("Users api is working..");
-    }
-
     
     // Endpoint to register a new user
     @PostMapping("/register")

@@ -15,7 +15,8 @@ import jakarta.persistence.Table;
 @Table(name = "roles")
 public class Role {
 
-    @Id
+
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -39,6 +40,11 @@ public class Role {
         this.name = name;
         this.description = description;
     }
+
+    public Role(String name) {
+		super();
+		this.name = name;
+	}
 
     // Getters and setters
 
